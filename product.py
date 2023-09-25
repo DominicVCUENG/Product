@@ -1,45 +1,68 @@
-from flask import Flask, request, jsonify
+import os
+from flask import current_app
+from flask import Flask, jsonify, request
+from flask_sqlalchemy import SQLAlchemy
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'products.sqlite')
+db = SQLAlchemy(app)
 
-# Sample product data
-products = [
-    {"id": 1, "name": "Apple", "price": 1.0, "quantity": 100},
-    {"id": 2, "name": "Banana", "price": 0.5, "quantity": 50},
-    {"id": 3, "name": "Orange", "price": 0.75, "quantity": 75},
-]
+# Product Model
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
 
-# Endpoint to retrieve a list of available grocery products
+# Endpoint 1: Get all products
 @app.route('/products', methods=['GET'])
 def get_products():
-    return jsonify(products)
+    products = Product.query.all()
+    product_list = [{"id": product.id, "name": product.name, "price": product.price, "quantity": product.quantity} for product in products]
+    return jsonify({"products": product_list})
 
-# Endpoint to get details about a specific product by its ID
+# Endpoint 2: Get a specific product by ID
 @app.route('/products/<int:product_id>', methods=['GET'])
 def get_product(product_id):
-    product = next((p for p in products if p['id'] == product_id), None)
+    product = Product.query.get(product_id)
     if product:
-        return jsonify(product)
+        return jsonify({"product": {"id": product.id, "name": product.name, "price": product.price, "quantity": product.quantity}})
     else:
         return jsonify({"error": "Product not found"}), 404
-
-# Endpoint to add new grocery products to the inventory
+    
+# Endpoint 3: Create a new product
 @app.route('/products', methods=['POST'])
-def add_product():
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Invalid data"}), 400
+def create_product():
+    data = request.json
+    if "id" not in data:
+        return jsonify({"error": "id is required"}), 400
+    if "name" not in data:
+        return jsonify({"error": "Name is required"}), 400
+    if "price" not in data:
+        return jsonify({"error": "Price is required"}), 400
+    if "quantity" not in data:
+        return jsonify({"error": "Quanity is required"}), 400
 
-    new_id = max(p['id'] for p in products) + 1
-    new_product = {
-        "id": new_id,
-        "name": data['name'],
-        "price": data['price'],
-        "quantity": data['quantity'],
-    }
-    products.append(new_product)
+    new_product = Product(id=data['id'],name=data['name'], price=data['price'], quantity=data['quantity'])
+    db.session.add(new_product)
+    db.session.commit()
 
-    return jsonify({"message": "Product added successfully", "product": new_product}), 201
+    return jsonify({"message": "Product added", "product": {"id": new_product.id, "name": new_product.name, "price": new_product.price, "quantity": new_product.quantity}}), 201
 
+# Endpoint 4: Remove a product by ID
+@app.route('/products/<int:product_id>', methods=['DELETE'])
+def remove_product(product_id):
+    product = Product.query.get(product_id)
+    if product:
+        db.session.delete(product)
+        db.session.commit()
+        return jsonify({"message": f"Product {product_id} removed"}), 200
+    else:
+        return jsonify({"error": f"Product {product_id} not found"}), 404
+    
 if __name__ == '__main__':
+    """with app.app_context():
+        db.create_all()
+    """
     app.run(debug=True)
