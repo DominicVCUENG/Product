@@ -44,6 +44,10 @@ def create_product():
     if "quantity" not in data:
         return jsonify({"error": "Quanity is required"}), 400
 
+    existing_product = Product.query.filter_by(id=data['id']).first()
+    if existing_product:
+        return jsonify({"error": "Product with this id already exists"}), 409
+
     new_product = Product(id=data['id'],name=data['name'], price=data['price'], quantity=data['quantity'])
     db.session.add(new_product)
     db.session.commit()
@@ -60,6 +64,19 @@ def remove_product(product_id):
         return jsonify({"message": f"Product {product_id} removed"}), 200
     else:
         return jsonify({"error": f"Product {product_id} not found"}), 404
+
+# Endpoint 5: Remove all products
+@app.route('/products', methods=['DELETE'])
+def remove_all_products():
+    all_products = Product.query.all()
+
+    if all_products:
+        for product in all_products:
+            db.session.delete(product)
+        db.session.commit()
+        return jsonify({"message": "All products removed"}), 200
+    else:
+        return jsonify({"message": "No products found"}), 404
     
 if __name__ == '__main__':
     """with app.app_context():
