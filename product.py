@@ -2,9 +2,13 @@ import os
 from flask import current_app
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
+CORS(app)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'products.sqlite')
 db = SQLAlchemy(app)
 
