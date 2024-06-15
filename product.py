@@ -39,15 +39,25 @@ def get_product(product_id):
 @app.route('/products', methods=['POST'])
 def create_product():
     data = request.json
-    if "id" not in data:
+    if "id" not in data or data['id'] is None:
         return jsonify({"error": "id is required"}), 400
-    if "name" not in data:
+    if "name" not in data or data['name'] is None:
         return jsonify({"error": "Name is required"}), 400
-    if "price" not in data:
+    if "price" not in data or data['price'] is None:
         return jsonify({"error": "Price is required"}), 400
-    if "quantity" not in data:
-        return jsonify({"error": "Quanity is required"}), 400
+    if "quantity" not in data or data['quantity'] is None:
+        return jsonify({"error": "Quantity is required"}), 400
 
+    # Type checks for each field
+    if not isinstance(data['id'], int):
+        return jsonify({"error": "id must be an integer"}), 400
+    if not isinstance(data['name'], str):
+        return jsonify({"error": "Name must be a string"}), 400
+    if not isinstance(data['price'], (int, float)):
+        return jsonify({"error": "Price must be a number"}), 400
+    if not isinstance(data['quantity'], int):
+        return jsonify({"error": "Quantity must be an integer"}), 400
+    
     existing_product = Product.query.filter_by(id=data['id']).first()
     if existing_product:
         return jsonify({"error": "Product with this id already exists"}), 409
