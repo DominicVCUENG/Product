@@ -41,7 +41,7 @@ def create_product():
     data = request.json
     if "id" not in data or data['id'] is None:
         return jsonify({"error": "id is required"}), 400
-    if "name" not in data or data['name'] is None:
+    if "name" not in data or data['name'] is None or data['name'] == '':
         return jsonify({"error": "Name is required"}), 400
     if "price" not in data or data['price'] is None:
         return jsonify({"error": "Price is required"}), 400
