@@ -49,8 +49,7 @@ def create_product():
         return jsonify({"error": "Quantity is required"}), 400
 
     # Type checks for each field
-    idNum = data['id']
-    if not isinstance(idNum, int):
+    if not isinstance(data['id'], int):
         return jsonify({"error": "id must be an integer"}), 400
     if not isinstance(data['name'], str):
         return jsonify({"error": "Name must be a string"}), 400
