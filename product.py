@@ -69,7 +69,42 @@ def remove_product(product_id):
     else:
         return jsonify({"error": f"Product {product_id} not found"}), 404
 
-# Endpoint 5: Remove all products
+# Endpoint 5: Remove a specific quantity of a product by ID
+@app.route('/products/<int:product_id>/remove_quantity', methods=['PUT'])
+def remove_product_quantity(product_id):
+    data = request.json
+    if "quantity" not in data:
+        return jsonify({"error": "Quantity is required"}), 400
+
+    product = Product.query.get(product_id)
+    if product:
+        if product.quantity >= data['quantity']:
+            product.quantity -= data['quantity']
+            if product.quantity == 0:
+                db.session.delete(product)
+            db.session.commit()
+            return jsonify({"message": f"Quantity {data['quantity']} removed from product {product_id}"}), 200
+        else:
+            return jsonify({"error": "Insufficient quantity"}), 400
+    else:
+        return jsonify({"error": f"Product {product_id} not found"}), 404
+
+# Endpoint 6: Add a specific quantity of a product by ID
+@app.route('/products/<int:product_id>/add_quantity', methods=['PUT'])
+def add_product_quantity(product_id):
+    data = request.json
+    if "quantity" not in data:
+        return jsonify({"error": "Quantity is required"}), 400
+
+    product = Product.query.get(product_id)
+    if product:
+        product.quantity += data['quantity']
+        db.session.commit()
+        return jsonify({"message": f"Quantity {data['quantity']} added to product {product_id}"}), 200
+    else:
+        return jsonify({"error": f"Product {product_id} not found"}), 404
+
+# Endpoint 7: Remove all products
 @app.route('/products', methods=['DELETE'])
 def remove_all_products():
     all_products = Product.query.all()
