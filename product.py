@@ -128,7 +128,7 @@ def remove_all_products():
         return jsonify({"message": "No products found"}), 404
     
 if __name__ == '__main__':
-    """with app.app_context():
+    with app.app_context():
         db.create_all()
-    """
+    
     app.run(debug=True)
