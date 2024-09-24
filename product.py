@@ -95,7 +95,7 @@ def remove_product_quantity(product_id):
             db.session.commit()
             return jsonify({"message": f"Quantity {data['quantity']} removed from product {product_id}"}), 200
         else:
-            return jsonify({"error": "Insufficient quantity"}), 400
+            return jsonify({"error": "Insufficient quantity", "quantity": product.quantity}), 210
     else:
         return jsonify({"error": f"Product {product_id} not found"}), 404
 
